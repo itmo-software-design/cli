@@ -1,0 +1,51 @@
+@startuml
+class CLIInterpreter {
+    - Environment environment
+    - CommandParser parser
+    + run()
+}
+
+class CommandParser {
+    + parse(String input): Command
+    + parsePipeline(String input): List<Command>
+}
+
+class Environment {
+    + setVariable(String name, String value)
+    + getVariable(String name): String
+}
+
+interface Command {
+    + execute(InputStream input, OutputStream output, List<String> args): void
+}
+
+class EchoCommand {
+    + execute(InputStream input, OutputStream output, List<String> args): void
+}
+
+class CatCommand {
+    + execute(InputStream input, OutputStream output, List<String> args): void
+}
+
+class WcCommand {
+    + execute(InputStream input, OutputStream output, List<String> args): void
+}
+
+class PwdCommand {
+    + execute(InputStream input, OutputStream output, List<String> args): void
+}
+
+class ExitCommand {
+    + execute(InputStream input, OutputStream output, List<String> args): void
+}
+
+CLIInterpreter --> CommandParser
+CLIInterpreter --> Environment
+CommandParser --> Command
+Command <|-- EchoCommand
+Command <|-- CatCommand
+Command <|-- WcCommand
+Command <|-- PwdCommand
+Command <|-- ExitCommand
+
+@enduml
