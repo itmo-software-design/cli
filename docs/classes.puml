@@ -13,31 +13,23 @@ class CommandParser {
 class Environment {
     + setVariable(String name, String value)
     + getVariable(String name): String
+    + getWorkingDirectory(): String
+    + setWorkingDirectory(String newDirectory)
 }
 
 interface Command {
-    + execute(InputStream input, OutputStream output, List<String> args): void
+    + execute(Environment environment, InputStream input, OutputStream output, List<String> args): void
 }
 
-class EchoCommand {
-    + execute(InputStream input, OutputStream output, List<String> args): void
-}
+class EchoCommand
 
-class CatCommand {
-    + execute(InputStream input, OutputStream output, List<String> args): void
-}
+class CatCommand
 
-class WcCommand {
-    + execute(InputStream input, OutputStream output, List<String> args): void
-}
+class WcCommand
 
-class PwdCommand {
-    + execute(InputStream input, OutputStream output, List<String> args): void
-}
+class PwdCommand
 
-class ExitCommand {
-    + execute(InputStream input, OutputStream output, List<String> args): void
-}
+class ExitCommand
 
 CLIInterpreter --> CommandParser
 CLIInterpreter --> Environment

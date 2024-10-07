@@ -1,0 +1,30 @@
+@startuml
+actor Пользователь
+participant CLIInterpreter
+participant CommandParser
+participant Environment
+participant CommandRegistry
+participant Command
+participant ExternalProcess
+
+Пользователь -> CLIInterpreter: Ввод команды
+CLIInterpreter -> CommandParser: parse(environment, input) парсинг команды
+CommandParser -> CommandParser: Парсинг команды
+CommandParser -> CommandRegistry: Получить Command для команды
+CommandRegistry --> CommandParser: Возвращает соответствующий Command объект
+CommandParser -> CLIInterpreter: Возвращает список Command объектов
+
+CLIInterpreter -> Command: execute(environment, input, output, args) выполнение команды
+alt Встроенная команда
+    Command --> Command: Выполнение логики команды
+    Command --> CLIInterpreter: Возврат результата
+else Внешняя команда
+    Command -> ExternalProcess: Запуск процесса
+    ExternalProcess --> Command: Возврат результата
+    Command --> CLIInterpreter: Возврат результата
+end
+
+CLIInterpreter -> Пользователь: Вывод результата
+
+note right of CLIInterpreter: Если пайплайн, то повторить execute для каждой команды в цепочке
+@enduml
