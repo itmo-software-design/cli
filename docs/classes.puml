@@ -1,4 +1,9 @@
 @startuml
+
+interface Runnable {
+    run(): void
+}
+
 class CLIInterpreter {
     - Environment environment
     - CommandParser parser
@@ -41,6 +46,7 @@ class ExitCommand {
 
 CLIInterpreter --> CommandParser
 CLIInterpreter --> Environment
+CLIInterpreter <|-- Runnable
 CommandParser --> Command
 Command <|-- EchoCommand
 Command <|-- CatCommand
