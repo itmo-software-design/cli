@@ -4,6 +4,7 @@ import java.util.*
 plugins {
     application
     jacoco
+    `maven-publish`
     alias(libs.plugins.kotlin.jvm)
 }
 
@@ -75,4 +76,51 @@ tasks.named<Test>("test") {
 
 tasks.jacocoTestReport {
     dependsOn(tasks.test)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            pom {
+                packaging = "jar"
+                url = "https://github.com/itmo-software-design/cli"
+
+                licenses {
+                    license {
+                        name.set("The MIT License (MIT)")
+                        url.set("https://www.mit.edu/~amini/LICENSE.md")
+                    }
+                }
+
+                scm {
+                    connection.set("scm:https://github.com/itmo-software-design/cli.git")
+                    developerConnection.set("scm:git:ssh://github.com/itmo-software-design")
+                    url.set("https://github.com/itmo-software-design/cli")
+                }
+
+                developers {
+                    developer {
+                        id.set("sibmaks")
+                        name.set("Maksim Drobyshev")
+                        email.set("sibmaks@vk.com")
+                    }
+                    developer {
+                        id.set("gkashin")
+                        name.set("Georgii Kashin")
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/itmo-software-design/web-app-hub")
+            credentials {
+                username = project.findProperty("gpr.user")?.toString() ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key")?.toString() ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
