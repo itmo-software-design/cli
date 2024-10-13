@@ -19,6 +19,7 @@ val javaVersion = JavaVersion.toVersion(targetJavaVersion)
 java {
     sourceCompatibility = javaVersion
     targetCompatibility = javaVersion
+    withSourcesJar()
 }
 
 repositories {

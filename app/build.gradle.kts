@@ -16,11 +16,7 @@ group = "${project.property("group")}"
 
 val targetJavaVersion = (project.property("jdk_version") as String).toInt()
 val javaVersion = JavaVersion.toVersion(targetJavaVersion)
-
-java {
-    sourceCompatibility = javaVersion
-    targetCompatibility = javaVersion
-}
+val javaLanguageVersion = JavaLanguageVersion.of(targetJavaVersion)
 
 repositories {
     mavenCentral()
@@ -38,9 +34,12 @@ dependencies {
 }
 
 java {
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
     toolchain {
-        languageVersion = JavaLanguageVersion.of(21)
+        languageVersion = javaLanguageVersion
     }
+    withSourcesJar()
 }
 
 application {
@@ -116,7 +115,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/itmo-software-design/web-app-hub")
+            url = uri("https://maven.pkg.github.com/itmo-software-design/cli")
             credentials {
                 username = project.findProperty("gpr.user")?.toString() ?: System.getenv("GITHUB_ACTOR")
                 password = project.findProperty("gpr.key")?.toString() ?: System.getenv("GITHUB_TOKEN")
