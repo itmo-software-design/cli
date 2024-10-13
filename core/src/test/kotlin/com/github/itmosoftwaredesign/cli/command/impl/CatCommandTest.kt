@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.SequenceInputStream
 import java.util.*
 
 class CatCommandTest {
@@ -34,9 +33,9 @@ class CatCommandTest {
         inputStream = ByteArrayInputStream(inputText.toByteArray())
 
         // Simulating input ending with Ctrl-D (EOF)
-        val eofInputStream = SequenceInputStream(inputStream, ByteArrayInputStream(byteArrayOf(-1)))
-
-        catCommand.execute(environment, eofInputStream, outputStream, errorStream, emptyList())
+        catCommand.execute(
+            environment, inputStream, outputStream, errorStream, emptyList()
+        )
 
         assertEquals(inputText, outputStream.toString())
         assertTrue(errorStream.toString().isEmpty())
