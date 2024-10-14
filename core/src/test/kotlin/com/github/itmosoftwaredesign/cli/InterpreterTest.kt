@@ -4,15 +4,11 @@ import com.github.itmosoftwaredesign.cli.command.Command
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
 import com.github.itmosoftwaredesign.cli.command.parser.ParsedCommand
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import io.mockk.*
+
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.io.PrintStream
+import java.io.*
 
 class InterpreterTest {
 
@@ -47,21 +43,17 @@ class InterpreterTest {
     }
 
     @Test
-    fun `should handle unknown command`() {
-        val parsedCommand = mockk<ParsedCommand>(relaxed = true)
-
-        inputStream = ByteArrayInputStream("unknownCommand\nexit\n".toByteArray())
+    fun `should run external process on unknown command`() {
+        inputStream = ByteArrayInputStream("ls\n".toByteArray())
+        interpreter = spyk(Interpreter(environment, commandParser, commandRegistry, inputStream))
+        val parsedCommand = mockk<ParsedCommand>()
+        every { commandParser.parse(any()) } returns parsedCommand
         every { parsedCommand.commandTokens } returns listOf("unknownCommand")
-        every { commandParser.parse("unknownCommand") } returns parsedCommand
         every { commandRegistry["unknownCommand"] } returns null
 
-        interpreter = Interpreter(environment, commandParser, commandRegistry, inputStream)
-
-        val outputStream = ByteArrayOutputStream()
-        System.setErr(PrintStream(outputStream))
         interpreter.run()
 
-        assert(outputStream.toString().contains("Unknown command: unknownCommand"))
+        verify { interpreter.runExternalCommand(parsedCommand, listOf()) }
     }
 
     @Test

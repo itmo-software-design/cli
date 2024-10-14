@@ -1,6 +1,7 @@
 package com.github.itmosoftwaredesign.cli.command.parser
 
 import com.github.itmosoftwaredesign.cli.Environment
+import java.io.File
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
@@ -25,6 +26,9 @@ class CommandParser(private val environment: Environment) {
         var inputStream = System.`in`
         var outputStream: OutputStream = System.out
         var errorStream: OutputStream = System.err
+        var inputStreamFile = File("")
+        var outputStreamFile = File("")
+        var errorStreamFile = File("")
 
         var i = 0
         while (i < tokens.size) {
@@ -36,6 +40,7 @@ class CommandParser(private val environment: Environment) {
                         val workingDirectory = environment.workingDirectory
                         val file = workingDirectory.resolve(fileName).toFile()
                         inputStream = FileInputStream(file)
+                        inputStreamFile = file
                     }
 
                     ">" -> {
@@ -43,6 +48,7 @@ class CommandParser(private val environment: Environment) {
                         val workingDirectory = environment.workingDirectory
                         val file = workingDirectory.resolve(fileName).toFile()
                         outputStream = FileOutputStream(file)
+                        outputStreamFile = file
                     }
 
                     ">>" -> {
@@ -50,6 +56,7 @@ class CommandParser(private val environment: Environment) {
                         val workingDirectory = environment.workingDirectory
                         val file = workingDirectory.resolve(fileName).toFile()
                         outputStream = FileOutputStream(file, true)
+                        outputStreamFile = file
                     }
 
                     "2>" -> {
@@ -57,6 +64,7 @@ class CommandParser(private val environment: Environment) {
                         val workingDirectory = environment.workingDirectory
                         val file = workingDirectory.resolve(fileName).toFile()
                         errorStream = FileOutputStream(file)
+                        errorStreamFile = file
                     }
 
                     "2>>" -> {
@@ -64,6 +72,7 @@ class CommandParser(private val environment: Environment) {
                         val workingDirectory = environment.workingDirectory
                         val file = workingDirectory.resolve(fileName).toFile()
                         errorStream = FileOutputStream(file, true)
+                        errorStreamFile = file
                     }
 
                     "&>", ">&" -> {
@@ -72,6 +81,8 @@ class CommandParser(private val environment: Environment) {
                         val file = workingDirectory.resolve(fileName).toFile()
                         errorStream = FileOutputStream(file)
                         outputStream = errorStream
+                        outputStreamFile = file
+                        errorStreamFile = file
                     }
 
                     else -> commandTokens.add(token)
@@ -82,7 +93,7 @@ class CommandParser(private val environment: Environment) {
             i++
         }
 
-        return ParsedCommand(commandTokens, inputStream, outputStream, errorStream)
+        return ParsedCommand(commandTokens, inputStream, outputStream, errorStream, outputStreamFile, inputStreamFile, errorStreamFile)
     }
 
     private fun tokenize(input: String): List<String> {

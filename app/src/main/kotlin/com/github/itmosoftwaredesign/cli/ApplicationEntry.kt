@@ -1,5 +1,7 @@
 package com.github.itmosoftwaredesign.cli
 
+import EchoCommand
+import WcCommand
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.impl.CatCommand
 import com.github.itmosoftwaredesign.cli.command.impl.ChangeDirectoryCommand
@@ -27,6 +29,8 @@ object ApplicationEntry {
         commandRegistry.register("cat", CatCommand())
         commandRegistry.register("pwd", PrintWorkingDirectoryCommand())
         commandRegistry.register("cd", ChangeDirectoryCommand())
+        commandRegistry.register("echo", EchoCommand())
+        commandRegistry.register("wc", WcCommand())
 
         val interpreter = Interpreter(environment, parser, commandRegistry, System.`in`)
         val interpreterThread = Thread(interpreter)

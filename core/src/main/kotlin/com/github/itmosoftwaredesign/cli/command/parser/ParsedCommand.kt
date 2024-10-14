@@ -1,5 +1,6 @@
 package com.github.itmosoftwaredesign.cli.command.parser
 
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -13,7 +14,10 @@ data class ParsedCommand(
     val commandTokens: List<String>,
     val inputStream: InputStream,
     val outputStream: OutputStream,
-    val errorStream: OutputStream
+    val errorStream: OutputStream,
+    val outputStreamFile: File = File(""),
+    val inputStreamFile: File = File(""),
+    val errorStreamFile: File = File("")
 ) : AutoCloseable {
 
     /**

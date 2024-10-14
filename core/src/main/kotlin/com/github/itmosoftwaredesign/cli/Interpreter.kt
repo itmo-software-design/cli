@@ -2,9 +2,15 @@ package com.github.itmosoftwaredesign.cli
 
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
+import com.github.itmosoftwaredesign.cli.command.parser.ParsedCommand
 import jakarta.annotation.Nonnull
+import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
+import java.nio.file.Paths
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class Interpreter(
     @param:Nonnull private val environment: Environment,
@@ -35,11 +41,15 @@ class Interpreter(
                 break
             }
             val command = registry[commandAlias]
-            if (command == null) {
-                System.err.println("Unknown command: $commandAlias")
-                continue
-            }
             try {
+                if (command == null) {
+                    System.out.printf(
+                        "Command '%s' is not registered. Starting execution of the external program...%n",
+                        commandAlias
+                    )
+                    runExternalCommand(parsedCommand, tokens.subList(1, tokens.size))
+                    continue
+                }
                 parsedCommand.use {
                     command.execute(
                         environment,
@@ -54,5 +64,35 @@ class Interpreter(
                 e.printStackTrace()
             }
         }
+    }
+
+    fun runExternalCommand(parsedCommand: ParsedCommand, arguments: List<String>) {
+        val commandAlias = parsedCommand.commandTokens.first()
+        val args = arguments.toMutableList()
+        args.addFirst(commandAlias)
+        val dir =
+            if (environment.workingDirectory.toString().isEmpty()) null else environment.workingDirectory.toFile()
+
+        val process = ProcessBuilder(args)
+        process.directory(dir)
+        if (parsedCommand.outputStreamFile.toString().isNotEmpty()) {
+            process.redirectOutput(parsedCommand.outputStreamFile)
+        } else {
+            process.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+        }
+
+        if (parsedCommand.inputStreamFile.toString().isNotEmpty()) {
+            process.redirectInput(parsedCommand.inputStreamFile)
+        } else {
+            process.redirectInput(ProcessBuilder.Redirect.INHERIT)
+        }
+
+        if (parsedCommand.errorStreamFile.toString().isNotEmpty()) {
+            process.redirectError(parsedCommand.errorStreamFile)
+        } else {
+            process.redirectError(ProcessBuilder.Redirect.INHERIT)
+        }
+
+        process.start().waitFor(5, TimeUnit.SECONDS)
     }
 }
