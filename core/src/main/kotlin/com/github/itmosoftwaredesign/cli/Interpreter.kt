@@ -4,13 +4,8 @@ import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
 import com.github.itmosoftwaredesign.cli.command.parser.ParsedCommand
 import jakarta.annotation.Nonnull
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
 import java.io.InputStream
-import java.nio.file.Paths
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class Interpreter(
     @param:Nonnull private val environment: Environment,
@@ -47,7 +42,8 @@ class Interpreter(
                         "Command '%s' is not registered. Starting execution of the external program...%n",
                         commandAlias
                     )
-                    runExternalCommand(parsedCommand, tokens.subList(1, tokens.size))
+                    val exitCode = runExternalCommand(parsedCommand, tokens.subList(1, tokens.size))
+                    println("External program execution finished with exit code $exitCode")
                     continue
                 }
                 parsedCommand.use {
@@ -66,33 +62,40 @@ class Interpreter(
         }
     }
 
-    fun runExternalCommand(parsedCommand: ParsedCommand, arguments: List<String>) {
+    fun runExternalCommand(parsedCommand: ParsedCommand, arguments: List<String>): Int {
         val commandAlias = parsedCommand.commandTokens.first()
         val args = arguments.toMutableList()
         args.addFirst(commandAlias)
         val dir =
             if (environment.workingDirectory.toString().isEmpty()) null else environment.workingDirectory.toFile()
 
-        val process = ProcessBuilder(args)
-        process.directory(dir)
+        val builder = ProcessBuilder(args)
+        builder.directory(dir)
         if (parsedCommand.outputStreamFile.toString().isNotEmpty()) {
-            process.redirectOutput(parsedCommand.outputStreamFile)
+            builder.redirectOutput(parsedCommand.outputStreamFile)
         } else {
-            process.redirectOutput(ProcessBuilder.Redirect.INHERIT)
+            builder.redirectOutput(ProcessBuilder.Redirect.INHERIT)
         }
 
         if (parsedCommand.inputStreamFile.toString().isNotEmpty()) {
-            process.redirectInput(parsedCommand.inputStreamFile)
+            builder.redirectInput(parsedCommand.inputStreamFile)
         } else {
-            process.redirectInput(ProcessBuilder.Redirect.INHERIT)
+            builder.redirectInput(ProcessBuilder.Redirect.INHERIT)
         }
 
         if (parsedCommand.errorStreamFile.toString().isNotEmpty()) {
-            process.redirectError(parsedCommand.errorStreamFile)
+            builder.redirectError(parsedCommand.errorStreamFile)
         } else {
-            process.redirectError(ProcessBuilder.Redirect.INHERIT)
+            builder.redirectError(ProcessBuilder.Redirect.INHERIT)
         }
 
-        process.start().waitFor(5, TimeUnit.SECONDS)
+        val variableNames = environment.getVariableNames()
+        val processEnvironment = builder.environment()
+        for (variableName in variableNames) {
+            processEnvironment[variableName] = environment.getVariable(variableName)
+        }
+        val process = builder.start()
+        process.waitFor()
+        return process.exitValue()
     }
 }

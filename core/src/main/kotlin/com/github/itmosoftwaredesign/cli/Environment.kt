@@ -1,6 +1,7 @@
 package com.github.itmosoftwaredesign.cli
 
 import java.nio.file.Path
+import java.util.*
 
 /**
  * Command line interface environment.
@@ -30,6 +31,15 @@ class Environment(
      */
     fun getVariable(name: String): String? {
         return variables[name]
+    }
+
+    /**
+     * Get variable names from environment.
+     *
+     * @return variable names
+     */
+    fun getVariableNames(): Set<String> {
+        return Collections.unmodifiableSet(variables.keys)
     }
 
 }

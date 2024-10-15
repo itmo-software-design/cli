@@ -4,11 +4,16 @@ import com.github.itmosoftwaredesign.cli.command.Command
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
 import com.github.itmosoftwaredesign.cli.command.parser.ParsedCommand
-import io.mockk.*
-
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.spyk
+import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
+import java.io.PrintStream
 
 class InterpreterTest {
 
@@ -39,13 +44,23 @@ class InterpreterTest {
         interpreter = Interpreter(environment, commandParser, commandRegistry, inputStream)
         interpreter.run()
 
-        verify { commandMock.execute(environment, parsedCommand.inputStream, parsedCommand.outputStream, parsedCommand.errorStream, listOf("Hello")) }
+        verify {
+            commandMock.execute(
+                environment,
+                parsedCommand.inputStream,
+                parsedCommand.outputStream,
+                parsedCommand.errorStream,
+                listOf("Hello")
+            )
+        }
     }
 
     @Test
     fun `should run external process on unknown command`() {
         inputStream = ByteArrayInputStream("ls\n".toByteArray())
         interpreter = spyk(Interpreter(environment, commandParser, commandRegistry, inputStream))
+        every { environment.getVariableNames() } returns setOf()
+
         val parsedCommand = mockk<ParsedCommand>()
         every { commandParser.parse(any()) } returns parsedCommand
         every { parsedCommand.commandTokens } returns listOf("unknownCommand")
