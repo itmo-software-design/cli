@@ -70,7 +70,7 @@ class Interpreter(
             if (environment.workingDirectory.toString().isEmpty()) null else environment.workingDirectory.toFile()
 
         val builder = ProcessBuilder(args)
-        builder.directory(dir)
+            .directory(dir)
         if (parsedCommand.outputStreamFile.toString().isNotEmpty()) {
             builder.redirectOutput(parsedCommand.outputStreamFile)
         } else {
@@ -95,7 +95,6 @@ class Interpreter(
             processEnvironment[variableName] = environment.getVariable(variableName)
         }
         val process = builder.start()
-        process.waitFor()
-        return process.exitValue()
+        return process.waitFor()
     }
 }

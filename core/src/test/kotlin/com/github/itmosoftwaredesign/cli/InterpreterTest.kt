@@ -4,10 +4,7 @@ import com.github.itmosoftwaredesign.cli.command.Command
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
 import com.github.itmosoftwaredesign.cli.command.parser.ParsedCommand
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.spyk
-import io.mockk.verify
+import io.mockk.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
@@ -69,6 +66,68 @@ class InterpreterTest {
         interpreter.run()
 
         verify { interpreter.runExternalCommand(parsedCommand, listOf()) }
+    }
+
+    @Test
+    fun `should handle unknown command and run external program`() {
+        val parsedCommand = mockk<ParsedCommand>(relaxed = true)
+        val input = "externalCommand arg1\nexit\n"
+        val inputStream = ByteArrayInputStream(input.toByteArray())
+
+        every { parsedCommand.commandTokens } returns listOf("externalCommand", "arg1")
+        every { commandParser.parse("externalCommand arg1") } returns parsedCommand
+        every { commandRegistry["externalCommand"] } returns null
+
+        val mockProcess = mockk<Process>(relaxed = true)
+        val mockProcessBuilder = mockk<ProcessBuilder>(relaxed = true)
+
+        mockkConstructor(ProcessBuilder::class)
+
+        every {
+            constructedWith<ProcessBuilder>(OfTypeMatcher<List<String>>(List::class))
+                .directory(any())
+        } returns mockProcessBuilder
+        every { mockProcessBuilder.start() } returns mockProcess
+        every { mockProcess.waitFor() } returns 0
+
+        interpreter = Interpreter(environment, commandParser, commandRegistry, inputStream)
+        interpreter.run()
+
+        verify { mockProcess.waitFor() }
+    }
+
+    @Test
+    fun `should pass environment variables to external program`() {
+        val parsedCommand = mockk<ParsedCommand>(relaxed = true)
+        val input = "externalCommand arg1\nexit\n"
+        val inputStream = ByteArrayInputStream(input.toByteArray())
+
+        every { parsedCommand.commandTokens } returns listOf("externalCommand", "arg1")
+        every { commandParser.parse("externalCommand arg1") } returns parsedCommand
+        every { commandRegistry["externalCommand"] } returns null
+        every { environment.getVariableNames() } returns setOf("ENV_VAR")
+        every { environment.getVariable("ENV_VAR") } returns "value"
+
+        val mockProcessBuilder = mockk<ProcessBuilder>(relaxed = true)
+
+        mockkConstructor(ProcessBuilder::class)
+        every {
+            constructedWith<ProcessBuilder>(OfTypeMatcher<List<String>>(List::class))
+                .directory(any())
+        } returns mockProcessBuilder
+
+        val environmentMap = mockk<MutableMap<String, String>>(relaxed = true)
+        every { mockProcessBuilder.environment() } returns environmentMap
+
+        val mockProcess = mockk<Process>(relaxed = true)
+        every { mockProcessBuilder.start() } returns mockProcess
+        every { mockProcess.waitFor() } returns 0
+
+        interpreter = Interpreter(environment, commandParser, commandRegistry, inputStream)
+        interpreter.run()
+
+        verify { mockProcess.waitFor() }
+        verify { environmentMap["ENV_VAR"] = "value" }
     }
 
     @Test
