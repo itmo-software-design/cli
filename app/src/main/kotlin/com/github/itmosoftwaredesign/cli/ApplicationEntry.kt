@@ -7,6 +7,7 @@ import com.github.itmosoftwaredesign.cli.command.impl.CatCommand
 import com.github.itmosoftwaredesign.cli.command.impl.ChangeDirectoryCommand
 import com.github.itmosoftwaredesign.cli.command.impl.PrintWorkingDirectoryCommand
 import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
+import sun.misc.Signal
 
 /**
  *  Application entry point
@@ -22,6 +23,11 @@ object ApplicationEntry {
     @Throws(InterruptedException::class)
     @JvmStatic
     fun main(args: Array<String>) {
+        Signal.handle(
+            Signal("INT")
+        )
+        { _ ->  }
+
         val environment = Environment()
 
         val parser = CommandParser(environment)
