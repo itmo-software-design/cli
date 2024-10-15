@@ -1,3 +1,4 @@
+package com.github.itmosoftwaredesign.cli.command.impl
 
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command

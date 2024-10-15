@@ -23,6 +23,13 @@ class EnvironmentTest {
     }
 
     @Test
+    fun `should get environment variable names`() {
+        environment.setVariable("key", "value")
+
+        assertEquals(setOf("key"), environment.getVariableNames())
+    }
+
+    @Test
     fun `should return null for nonexistent variable`() {
         assertNull(environment.getVariable("nonexistent"))
     }

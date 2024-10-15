@@ -1,6 +1,5 @@
 package com.github.itmosoftwaredesign.cli.command.impl
 
-import EchoCommand
 import com.github.itmosoftwaredesign.cli.Environment
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -28,7 +27,7 @@ class EchoCommandTest {
 
     @Test
     fun `should read from input stream and write to output stream`() {
-        val expected = "123 abc, 456 def\n"
+        val expected = "123 abc, 456 def${System.lineSeparator()}"
         inputStream = ByteArrayInputStream("echo 123 abc, 456       def".toByteArray())
         val args = listOf("123 abc, 456 def")
 

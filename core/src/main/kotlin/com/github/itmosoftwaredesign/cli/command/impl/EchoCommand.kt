@@ -1,3 +1,4 @@
+package com.github.itmosoftwaredesign.cli.command.impl
 
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command
@@ -21,16 +22,9 @@ class EchoCommand : Command {
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
     ) {
-        if (arguments.isEmpty()) {
-            var c: Int
-            while ((inputStream.read().also { c = it }) != -1) {
-                outputStream.write(c)
-            }
-            return
-        }
-        val joined = arguments.joinToString(separator = " ", postfix = "\n")
+        val joined = arguments.joinToString(separator = " ")
         try {
-            outputStream.write(joined.toByteArray())
+            outputStream.writeLineUTF8(joined)
         } catch (e: IOException) {
             errorStream.writeLineUTF8("Output stream write exception, reason: ${e.message}")
         }

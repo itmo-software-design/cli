@@ -1,7 +1,7 @@
 package com.github.itmosoftwaredesign.cli
 
-import EchoCommand
-import WcCommand
+import com.github.itmosoftwaredesign.cli.command.impl.EchoCommand
+import com.github.itmosoftwaredesign.cli.command.impl.WcCommand
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.impl.CatCommand
 import com.github.itmosoftwaredesign.cli.command.impl.ChangeDirectoryCommand
