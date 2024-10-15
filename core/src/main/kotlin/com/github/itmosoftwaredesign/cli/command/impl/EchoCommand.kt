@@ -1,6 +1,7 @@
+
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command
-import com.github.itmosoftwaredesign.cli.writeUTF8
+import com.github.itmosoftwaredesign.cli.writeLineUTF8
 import jakarta.annotation.Nonnull
 import java.io.IOException
 import java.io.InputStream
@@ -31,7 +32,7 @@ class EchoCommand : Command {
         try {
             outputStream.write(joined.toByteArray())
         } catch (e: IOException) {
-            errorStream.writeUTF8("Output stream write exception, reason: ${e.message}")
+            errorStream.writeLineUTF8("Output stream write exception, reason: ${e.message}")
         }
     }
 }

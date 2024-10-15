@@ -1,12 +1,10 @@
+
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command
+import com.github.itmosoftwaredesign.cli.writeLineUTF8
 import com.github.itmosoftwaredesign.cli.writeUTF8
 import jakarta.annotation.Nonnull
-import java.io.BufferedReader
-import java.io.FileReader
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 
 /**
  *  `Wc` command definition
@@ -25,7 +23,7 @@ class WcCommand : Command {
         if (arguments.isEmpty()) {
             val triple = calculate(inputStream.bufferedReader())
             val result = concatenate(triple)
-            outputStream.writeUTF8("$result\n")
+            outputStream.writeLineUTF8(result)
             return
         }
         var totalLinesCount = 0
@@ -39,15 +37,15 @@ class WcCommand : Command {
                 totalWordsCount += triple.second
                 totalBytesCount += triple.third
                 val result = concatenate(triple)
-                outputStream.writeUTF8("$result $argument\n")
+                outputStream.writeLineUTF8("$result $argument")
                 successfulExecutionCount += 1
             } catch (e: IOException) {
-                errorStream.writeUTF8("Reading input file $argument exception, reason: ${e.message}\n")
+                errorStream.writeLineUTF8("Reading input file $argument exception, reason: ${e.message}")
             }
         }
         if (successfulExecutionCount > 1) {
             val totalResult = concatenate(Triple(totalLinesCount, totalWordsCount, totalBytesCount))
-            outputStream.writeUTF8("$totalResult total\n")
+            outputStream.writeUTF8("$totalResult total")
         }
     }
 

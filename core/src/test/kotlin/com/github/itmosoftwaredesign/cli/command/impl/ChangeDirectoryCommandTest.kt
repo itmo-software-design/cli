@@ -8,7 +8,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayOutputStream
+import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
+import kotlin.io.path.createDirectory
+import kotlin.io.path.createFile
 
 class ChangeDirectoryCommandTest {
 
@@ -27,15 +31,41 @@ class ChangeDirectoryCommandTest {
 
     @Test
     fun `should change working directory when correct argument provided`() {
-        val currentDir = Path.of("/current/directory")
-        val newDir = "newFolder"
+        val currentDir = Files.createTempDirectory("current")
+        currentDir.resolve("child").createDirectory()
+        val newDir = "child"
         val expectedDir = currentDir.resolve(newDir).normalize().toAbsolutePath()
+
+        every { environment.workingDirectory } returns currentDir.toAbsolutePath()
+
+        changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf(newDir))
+
+        verify { environment.workingDirectory = expectedDir }
+    }
+
+    @Test
+    fun `should not change working directory when not existed directory provided`() {
+        val currentDir = Path.of(UUID.randomUUID().toString())
+        val newDir = "child"
 
         every { environment.workingDirectory } returns currentDir
 
         changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf(newDir))
 
-        verify { environment.workingDirectory = expectedDir }
+        verify (exactly = 0) { environment.workingDirectory = any() }
+    }
+
+    @Test
+    fun `should not change working directory when not directory provided`() {
+        val currentDir = Files.createTempDirectory("current")
+        currentDir.resolve("child").createFile()
+        val newDir = "child"
+
+        every { environment.workingDirectory } returns currentDir.toAbsolutePath()
+
+        changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf(newDir))
+
+        verify (exactly = 0) { environment.workingDirectory = any() }
     }
 
     @Test

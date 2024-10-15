@@ -2,7 +2,7 @@ package com.github.itmosoftwaredesign.cli.command.impl
 
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command
-import com.github.itmosoftwaredesign.cli.writeUTF8
+import com.github.itmosoftwaredesign.cli.writeLineUTF8
 import jakarta.annotation.Nonnull
 import java.io.InputStream
 import java.io.OutputStream
@@ -22,7 +22,6 @@ class PrintWorkingDirectoryCommand : Command {
         @Nonnull arguments: List<String>
     ) {
         val workingDirectory = environment.workingDirectory
-        outputStream.writeUTF8(workingDirectory.toAbsolutePath().toString())
-        outputStream.writeUTF8("\n")
+        outputStream.writeLineUTF8(workingDirectory.toAbsolutePath().toString())
     }
 }

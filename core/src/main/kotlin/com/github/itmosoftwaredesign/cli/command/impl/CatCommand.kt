@@ -2,7 +2,7 @@ package com.github.itmosoftwaredesign.cli.command.impl
 
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command
-import com.github.itmosoftwaredesign.cli.writeUTF8
+import com.github.itmosoftwaredesign.cli.writeLineUTF8
 import jakarta.annotation.Nonnull
 import java.io.FileInputStream
 import java.io.IOException
@@ -36,7 +36,7 @@ class CatCommand : Command {
                     fileInputStream.transferTo(outputStream)
                 }
             } catch (e: IOException) {
-                errorStream.writeUTF8("File '$argument' read exception, reason: ${e.message}")
+                errorStream.writeLineUTF8("File '$argument' read exception, reason: ${e.message}")
             }
         }
     }
