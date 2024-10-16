@@ -60,7 +60,7 @@
 
 - Возможность запускать команды операционной системы через процессы.
 - Методы:
-    - `runExternalCommand(String command, List<String> args): Process`
+    - `runExternalCommand(parsedCommand: ParsedCommand, arguments: List<String>): Process`
 
 ## Логирование и обработка исключений
 
