@@ -11,7 +11,8 @@ import java.util.*
  */
 class Environment(
     private val variables: MutableMap<String, String> = HashMap(),
-    var workingDirectory: Path = Path.of("")
+    var workingDirectory: Path = Path.of(""),
+    var lastStatusCode: Int = 0
 ) {
     /**
      * Set variable in environment.
