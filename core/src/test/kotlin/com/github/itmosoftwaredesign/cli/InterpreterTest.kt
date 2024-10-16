@@ -131,20 +131,6 @@ class InterpreterTest {
     }
 
     @Test
-    fun `should exit on exit command`() {
-        inputStream = ByteArrayInputStream("exit\n".toByteArray())
-        val parsedCommand = mockk<ParsedCommand>(relaxed = true)
-        every { commandParser.parse("exit") } returns parsedCommand
-        every { parsedCommand.commandTokens } returns listOf("exit")
-
-        interpreter = Interpreter(environment, commandParser, commandRegistry, inputStream)
-
-        interpreter.run()
-
-        verify(exactly = 0) { commandRegistry["exit"] }
-    }
-
-    @Test
     fun `should handle command execution exception`() {
         val commandMock = mockk<Command>(relaxed = true)
         val parsedCommand = mockk<ParsedCommand>(relaxed = true)

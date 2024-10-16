@@ -1,11 +1,7 @@
 package com.github.itmosoftwaredesign.cli.command.parser
 
 import com.github.itmosoftwaredesign.cli.Environment
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileNotFoundException
-import java.io.FileOutputStream
-import java.io.OutputStream
+import java.io.*
 
 /**
  *  Command parser. Parse input string to commands, can use environment for substitution.
@@ -15,10 +11,11 @@ import java.io.OutputStream
  */
 class CommandParser(private val environment: Environment) {
     /**
-     * Parse command line input on tokens
+     * Parses the input command line string into tokens, handles I/O redirections, and returns
+     * a [ParsedCommand] containing the command tokens and associated input, output, and error streams.
      *
-     * @param input input string tokens
-     * @return list of tokens
+     * @param input the input command line string to parse
+     * @return [ParsedCommand] object containing tokenized commands and I/O streams
      */
     fun parse(input: String): ParsedCommand {
         val tokens = tokenize(input)
@@ -93,7 +90,15 @@ class CommandParser(private val environment: Environment) {
             i++
         }
 
-        return ParsedCommand(commandTokens, inputStream, outputStream, errorStream, outputStreamFile, inputStreamFile, errorStreamFile)
+        return ParsedCommand(
+            commandTokens,
+            inputStream,
+            outputStream,
+            errorStream,
+            outputStreamFile,
+            inputStreamFile,
+            errorStreamFile
+        )
     }
 
     private fun tokenize(input: String): List<String> {

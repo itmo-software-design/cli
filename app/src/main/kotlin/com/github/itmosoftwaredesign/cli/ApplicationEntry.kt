@@ -1,13 +1,10 @@
 package com.github.itmosoftwaredesign.cli
 
-import com.github.itmosoftwaredesign.cli.command.impl.EchoCommand
-import com.github.itmosoftwaredesign.cli.command.impl.WcCommand
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
-import com.github.itmosoftwaredesign.cli.command.impl.CatCommand
-import com.github.itmosoftwaredesign.cli.command.impl.ChangeDirectoryCommand
-import com.github.itmosoftwaredesign.cli.command.impl.PrintWorkingDirectoryCommand
+import com.github.itmosoftwaredesign.cli.command.impl.*
 import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
 import sun.misc.Signal
+import kotlin.system.exitProcess
 
 /**
  *  Application entry point
@@ -37,10 +34,12 @@ object ApplicationEntry {
         commandRegistry.register("cd", ChangeDirectoryCommand())
         commandRegistry.register("echo", EchoCommand())
         commandRegistry.register("wc", WcCommand())
+        commandRegistry.register("exit", ExitCommand())
 
         val interpreter = Interpreter(environment, parser, commandRegistry, System.`in`)
         val interpreterThread = Thread(interpreter)
         interpreterThread.start()
         interpreterThread.join()
+        exitProcess(environment.lastStatusCode)
     }
 }
