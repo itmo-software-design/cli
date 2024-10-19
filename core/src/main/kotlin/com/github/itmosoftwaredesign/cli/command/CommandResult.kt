@@ -6,11 +6,11 @@ package com.github.itmosoftwaredesign.cli.command
  * @author sibmaks
  * @since 0.0.1
  */
-sealed class CommandResult(val statusCode: Int)
+sealed class CommandResult(val exitCode: Int)
 
 /**
  * Success command result. Command executed without any errors.
- * Used `0` status code.
+ * Used `0` exit code.
  *
  * @author sibmaks
  * @since 0.0.1
@@ -18,12 +18,12 @@ sealed class CommandResult(val statusCode: Int)
 class SuccessResult : CommandResult(0)
 
 /**
- * Error command result. Command execution failed. Contains status code.
+ * Error command result. Command execution failed. Contains exit code.
  *
  * @author sibmaks
  * @since 0.0.1
  */
-class ErrorResult(statusCode: Int) : CommandResult(statusCode)
+class ErrorResult(exitCode: Int) : CommandResult(exitCode)
 
 /**
  * Command result, which means that command execution interrupt current execution line.
@@ -31,4 +31,4 @@ class ErrorResult(statusCode: Int) : CommandResult(statusCode)
  * @author sibmaks
  * @since 0.0.1
  */
-class CommandInterrupted(statusCode: Int) : CommandResult(statusCode)
+class CommandInterrupted(exitCode: Int) : CommandResult(exitCode)

@@ -107,19 +107,57 @@ class CommandParser(private val environment: Environment) {
         var inSingleQuotes = false
         var inDoubleQuotes = false
 
-        for (element in input) {
-            if (element == '\'') {
-                inSingleQuotes = !inSingleQuotes
-            } else if (element == '"') {
-                inDoubleQuotes = !inDoubleQuotes
-            } else if (element == ' ' && !inSingleQuotes && !inDoubleQuotes) {
-                if (currentToken.isNotEmpty()) {
+        var i = 0
+
+        while (i < input.length) {
+            val element = input[i]
+            when {
+                element == '\'' -> {
+                    inSingleQuotes = !inSingleQuotes
+                    if (!inSingleQuotes) {
+                        val parsedToken = currentToken.toString().replace("\\n", "\n")
+                        currentToken.setLength(0)
+                        currentToken.append(parsedToken)
+                    }
+                }
+
+                element == '"' -> {
+                    inDoubleQuotes = !inDoubleQuotes
+                }
+
+                element == ' ' && !inSingleQuotes && !inDoubleQuotes && currentToken.isNotEmpty() -> {
                     tokens.add(currentToken.toString())
                     currentToken.setLength(0)
                 }
-            } else {
-                currentToken.append(element)
+
+                element == '$' && !inSingleQuotes -> {
+                    val variableResult = substituteVariableAtIndex(input, i)
+                    currentToken.append(variableResult.first)
+                    i += variableResult.second - 1
+                }
+
+                element == '=' && currentToken.isNotEmpty() && !(inSingleQuotes || inDoubleQuotes || tokens.isNotEmpty()) -> {
+                    tokens.add("set")
+                    tokens.add(currentToken.toString())
+                    currentToken.setLength(0)
+                }
+
+                else -> {
+                    if (!inSingleQuotes || element != '\\' || i + 1 >= input.length) {
+                        currentToken.append(element)
+                    } else {
+                        when (input[i + 1]) {
+                            'n' -> {
+                                currentToken.append('\n')
+                                i++
+                            }
+
+                            else -> currentToken.append(element)
+                        }
+                    }
+                }
             }
+            i++
         }
 
         if (currentToken.isNotEmpty()) {
@@ -127,5 +165,42 @@ class CommandParser(private val environment: Environment) {
         }
 
         return tokens
+    }
+
+    private fun substituteVariableAtIndex(input: String, index: Int): Pair<String, Int> {
+        val variableBuilder = StringBuilder()
+        var i = index + 1
+
+        if (i < input.length && input[i] == '{') {
+            i++
+            while (i < input.length && input[i] != '}') {
+                variableBuilder.append(input[i])
+                i++
+            }
+            if (i < input.length && input[i] == '}') {
+                i++
+            }
+            return buildResult(variableBuilder, i, index)
+        }
+        if (i < input.length && (input[i] == '$' || input[i] == '?')) {
+            variableBuilder.append(input[i])
+            i++
+            return buildResult(variableBuilder, i, index)
+        }
+        while (i < input.length && (input[i].isLetterOrDigit() || input[i] == '_')) {
+            variableBuilder.append(input[i])
+            i++
+        }
+        return buildResult(variableBuilder, i, index)
+    }
+
+    private fun buildResult(
+        variableBuilder: StringBuilder,
+        i: Int,
+        index: Int
+    ): Pair<String, Int> {
+        val variableName = variableBuilder.toString()
+        val variableValue = environment.getVariable(variableName) ?: ""
+        return Pair(variableValue, i - index)
     }
 }

@@ -12,6 +12,7 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
+import java.util.*
 import kotlin.io.path.createFile
 
 class CommandParserTest {
@@ -154,5 +155,172 @@ class CommandParserTest {
         val tokens = commandParser.parse(input).commandTokens
 
         assertEquals(listOf("echo", "hello world", "Kotlin CLI"), tokens)
+    }
+
+    @Test
+    fun `should tokenize equals in the middle`() {
+        val input = "do key=value"
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("do", "key=value"), tokens)
+    }
+
+    @Test
+    fun `should replace new line in single quotes`() {
+        val input = "echo 'hello\\nworld'"
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("echo", "hello\nworld"), tokens)
+    }
+
+    @Test
+    fun `should keep new line in double quotes`() {
+        val input = "echo \"hello\\nworld\""
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("echo", "hello\\nworld"), tokens)
+    }
+
+    @Test
+    fun `should keep dash at the end`() {
+        val input = "echo \\"
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("echo", "\\"), tokens)
+    }
+
+    @Test
+    fun `should keep unknown replacement`() {
+        val input = "echo \\b"
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("echo", "\\b"), tokens)
+    }
+
+    @Test
+    fun `should keep unknown replacement in quotes`() {
+        val input = "echo '\\b'"
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("echo", "\\b"), tokens)
+    }
+
+    @Test
+    fun `should handle set variable value command`() {
+        val input = "test=me"
+        every { environment.getVariable("HOME") } returns "/home/user"
+
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("set", "test", "me"), tokens)
+    }
+
+    @Test
+    fun `should handle command with 1st = symbol`() {
+        val input = "=me"
+
+        val tokens = commandParser.parse(input).commandTokens
+
+        assertEquals(listOf("=me"), tokens)
+    }
+
+    @Test
+    fun `should handle variable substitution`() {
+        val input = "echo \$HOME"
+        every { environment.getVariable("HOME") } returns "/home/user"
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable substitution when no variable is found`() {
+        val input = "echo \$HOME"
+        every { environment.getVariable("HOME") } returns null
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo"), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable substitution with numbers and underscores`() {
+        val input = "echo \$HOME_1"
+        every { environment.getVariable("HOME_1") } returns "/home/user"
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable substitution with brackets`() {
+        val input = "echo \${HOME}"
+        every { environment.getVariable("HOME") } returns "/home/user"
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable substitution with incomplete brackets`() {
+        val input = "echo \${HOME"
+        every { environment.getVariable("HOME") } returns "/home/user"
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable substitution with brackets at the end`() {
+        val input = "echo \${"
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo"), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable system dollar substitution`() {
+        val input = "echo \$$"
+        val value = UUID.randomUUID().toString()
+        every { environment.getVariable("$") } returns value
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo", value), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable system ask substitution`() {
+        val input = "echo \$?"
+        val value = UUID.randomUUID().toString()
+        every { environment.getVariable("?") } returns value
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo", value), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable system ask substitution when no value`() {
+        val input = "echo \$?"
+        every { environment.getVariable("?") } returns null
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo"), parsedCommand.commandTokens)
+    }
+
+    @Test
+    fun `should handle variable substitution at the end`() {
+        val input = "echo \$"
+
+        val parsedCommand = commandParser.parse(input)
+
+        assertEquals(listOf("echo"), parsedCommand.commandTokens)
     }
 }

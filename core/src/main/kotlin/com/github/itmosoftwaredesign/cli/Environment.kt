@@ -11,17 +11,28 @@ import java.util.*
  */
 class Environment(
     private val variables: MutableMap<String, String> = HashMap(),
+    private val systemVariables: MutableMap<String, () -> Any> = HashMap(),
     var workingDirectory: Path = Path.of(""),
-    var lastStatusCode: Int = 0
+    var lastExitCode: Int = 0
 ) {
+    init {
+        systemVariables["PWD"] = { workingDirectory.toString() }
+        systemVariables["?"] = { lastExitCode }
+        systemVariables["$"] = { getPid() }
+    }
+
     /**
      * Set variable in environment.
      *
      * @param name  variable name
      * @param value variable value
      */
-    fun setVariable(name: String, value: String) {
-        variables[name] = value
+    fun setVariable(name: String, value: String?) {
+        if (value == null) {
+            variables.remove(name)
+        } else {
+            variables[name] = value
+        }
     }
 
     /**
@@ -31,7 +42,17 @@ class Environment(
      * @return variable value
      */
     fun getVariable(name: String): String? {
+        val systemVariable = systemVariables[name]
+        if (systemVariable != null) {
+            return "${systemVariable()}"
+        }
+
         return variables[name]
+    }
+
+    private fun getPid(): Long {
+        return ProcessHandle.current()
+            .pid()
     }
 
     /**

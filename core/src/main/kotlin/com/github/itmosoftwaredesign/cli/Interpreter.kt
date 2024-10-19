@@ -38,7 +38,7 @@ class Interpreter(
      * to run it as an external program.
      *
      * If I/O redirection is specified (e.g., "<", ">", "2>"), it will be handled appropriately
-     * by redirecting streams to files or the standard I/O. The environment's last status code
+     * by redirecting streams to files or the standard I/O. The environment's last exit code
      * is updated after every command execution.
      */
     override fun run() {
@@ -62,8 +62,8 @@ class Interpreter(
                         "Command '%s' is not registered. Starting execution of the external program...%n",
                         commandAlias
                     )
-                    environment.lastStatusCode = runExternalCommand(parsedCommand, tokens.subList(1, tokens.size))
-                    println("External program execution finished with exit code ${environment.lastStatusCode}")
+                    environment.lastExitCode = runExternalCommand(parsedCommand, tokens.subList(1, tokens.size))
+                    println("External program execution finished with exit code ${environment.lastExitCode}")
                     continue
                 }
                 var interrupted = false
@@ -75,7 +75,7 @@ class Interpreter(
                         parsedCommand.errorStream,
                         tokens.subList(1, tokens.size)
                     )
-                    environment.lastStatusCode = result.statusCode
+                    environment.lastExitCode = result.exitCode
                     if (result is CommandInterrupted) {
                         interrupted = true
                     }
@@ -94,8 +94,9 @@ class Interpreter(
         val commandAlias = parsedCommand.commandTokens.first()
         val args = arguments.toMutableList()
         args.addFirst(commandAlias)
-        val dir =
-            if (environment.workingDirectory.toString().isEmpty()) null else environment.workingDirectory.toFile()
+
+        val workingDirectory = environment.workingDirectory
+        val dir = if (workingDirectory.toString().isEmpty()) null else workingDirectory.toFile()
 
         val builder = ProcessBuilder(args)
             .directory(dir)
