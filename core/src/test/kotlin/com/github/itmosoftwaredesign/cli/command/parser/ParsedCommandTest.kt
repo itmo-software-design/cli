@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.io.*
 
-class ParsedCommandTest {
+class parsedCommandsTest {
 
     private lateinit var inputStream: InputStream
     private lateinit var outputStream: OutputStream
@@ -24,10 +24,10 @@ class ParsedCommandTest {
 
     @Test
     fun `should not close system streams when auto-closing`() {
-        val parsedCommand = ParsedCommand(listOf("cmd"), System.`in`, System.out, System.err)
+        val parsedCommands = ParsedCommand(listOf("cmd"), System.`in`, System.out, System.err)
 
         try {
-            parsedCommand.close()
+            parsedCommands.close()
         } catch (e: Exception) {
             fail(e)
         }
@@ -40,10 +40,10 @@ class ParsedCommandTest {
         val outputStream = ByteArrayOutputStream()
         val errorStream = ByteArrayOutputStream()
 
-        val parsedCommand = ParsedCommand(listOf("cmd"), inputStream, outputStream, errorStream)
+        val parsedCommands = ParsedCommand(listOf("cmd"), inputStream, outputStream, errorStream)
 
         try {
-            parsedCommand.close()
+            parsedCommands.close()
         } catch (e: Exception) {
             fail(e)
         }
@@ -54,10 +54,10 @@ class ParsedCommandTest {
         val failingInputStream = mockk<InputStream> {
             every { close() } throws IOException("Failed to close input stream")
         }
-        val parsedCommand = ParsedCommand(listOf("cmd"), failingInputStream, System.out, System.err)
+        val parsedCommands = ParsedCommand(listOf("cmd"), failingInputStream, System.out, System.err)
 
         val exception = assertThrows<Exception> {
-            parsedCommand.close()
+            parsedCommands.close()
         }
 
         assertTrue(exception.message?.contains("Failed to close input stream") ?: false)
@@ -72,10 +72,10 @@ class ParsedCommandTest {
             every { close() } throws IOException("Failed to close output stream")
         }
 
-        val parsedCommand = ParsedCommand(listOf("cmd"), failingInputStream, failingOutputStream, System.err)
+        val parsedCommands = ParsedCommand(listOf("cmd"), failingInputStream, failingOutputStream, System.err)
 
         val exception = assertThrows<Exception> {
-            parsedCommand.close()
+            parsedCommands.close()
         }
 
         assertTrue(exception.message?.contains("Failed to close input stream") ?: false)
@@ -91,10 +91,10 @@ class ParsedCommandTest {
             every { close() } throws IOException("Failed to close error stream")
         }
 
-        val parsedCommand = ParsedCommand(listOf("cmd"), System.`in`, failingOutputStream, failingErrorStream)
+        val parsedCommands = ParsedCommand(listOf("cmd"), System.`in`, failingOutputStream, failingErrorStream)
 
         val exception = assertThrows<Exception> {
-            parsedCommand.close()
+            parsedCommands.close()
         }
 
         assertTrue(exception.message?.contains("Failed to close output stream") ?: false)

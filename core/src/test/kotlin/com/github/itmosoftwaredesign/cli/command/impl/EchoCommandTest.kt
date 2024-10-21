@@ -1,6 +1,8 @@
 package com.github.itmosoftwaredesign.cli.command.impl
 
 import com.github.itmosoftwaredesign.cli.Environment
+import com.github.itmosoftwaredesign.cli.command.ErrorResult
+import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -8,6 +10,9 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.OutputStream
+import java.util.*
 
 class EchoCommandTest {
 
@@ -37,5 +42,20 @@ class EchoCommandTest {
 
         assertEquals(expected, outputStream.toString())
         assertTrue(errorStream.toString().isEmpty())
+    }
+
+    @Test
+    fun `should handle output stream IOException`() {
+        val text = UUID.randomUUID().toString()
+        val arguments = listOf(text)
+
+        val outputStream = mockk<OutputStream>(relaxed = true)
+        every { outputStream.write(text.toByteArray(Charsets.UTF_8)) } throws IOException("Test error")
+
+        val result = echoCommand.execute(environment, System.`in`, outputStream, errorStream, arguments)
+
+        assertEquals("Output stream write exception, reason: Test error\n", errorStream.toString())
+        assert(result is ErrorResult)
+        assertEquals(1, result.exitCode)
     }
 }

@@ -7,20 +7,20 @@ import com.github.itmosoftwaredesign.cli.command.ErrorResult
 import com.github.itmosoftwaredesign.cli.command.SuccessResult
 import com.github.itmosoftwaredesign.cli.writeLineUTF8
 import jakarta.annotation.Nonnull
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
- *  `Echo` command definition.
+ *  `Set` command definition.
  *
- *  The echo command prints out its arguments as standard output.
- *  It is used to display text strings or the command results.
+ *  The `set` command change variable value in environment.
  *
- * @author gkashin
- * @since 0.0.1
+ *  It can create a new value or rewrite existing one.
+ *
+ * @author sibmaks
+ * @since 0.0.3
  */
-class EchoCommand : Command {
+class SetCommand : Command {
     override fun execute(
         @Nonnull environment: Environment,
         @Nonnull inputStream: InputStream,
@@ -28,13 +28,13 @@ class EchoCommand : Command {
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
     ): CommandResult {
-        val joined = arguments.joinToString(separator = " ")
-        try {
-            outputStream.writeLineUTF8(joined)
-            return SuccessResult()
-        } catch (e: IOException) {
-            errorStream.writeLineUTF8("Output stream write exception, reason: ${e.message}")
+        if (arguments.isEmpty()) {
+            errorStream.writeLineUTF8("At least one argument excepted")
             return ErrorResult(1)
         }
+        val variableName = arguments[0]
+        val variableValue = if(arguments.size == 1) null else arguments.subList(1, arguments.size).joinToString(" ")
+        environment.setVariable(variableName, variableValue)
+        return SuccessResult()
     }
 }

@@ -1,13 +1,12 @@
 @startuml
 class CLIInterpreter {
     - Environment environment
-    - CommandParser parser
+    - commandsParser parser
     + run()
 }
 
-class CommandParser {
-    + parse(String input): Command
-    + parsePipeline(String input): List<Command>
+class commandsParser {
+    + parse(String input): List<Command>
 }
 
 class Environment {
@@ -31,9 +30,9 @@ class PwdCommand
 
 class ExitCommand
 
-CLIInterpreter --> CommandParser
+CLIInterpreter --> commandsParser
 CLIInterpreter --> Environment
-CommandParser --> Command
+commandsParser --> Command
 Command <|-- EchoCommand
 Command <|-- CatCommand
 Command <|-- WcCommand

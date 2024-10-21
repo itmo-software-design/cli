@@ -6,7 +6,8 @@ import java.io.InputStream
 import java.io.OutputStream
 
 /**
- * Command line interface command interface. Describe high level command functionality.
+ * Command line interface command interface.
+ * Describe high level command functionality.
  *
  * @author sibmaks
  * @since 0.0.1
@@ -20,6 +21,7 @@ interface Command {
      * @param outputStream command output stream
      * @param errorStream  command output error stream
      * @param arguments    command arguments
+     * @return command execution result
      */
     fun execute(
         @Nonnull environment: Environment,
@@ -27,5 +29,5 @@ interface Command {
         @Nonnull outputStream: OutputStream,
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
-    )
+    ): CommandResult
 }
