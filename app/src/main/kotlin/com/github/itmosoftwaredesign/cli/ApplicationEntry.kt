@@ -2,7 +2,7 @@ package com.github.itmosoftwaredesign.cli
 
 import com.github.itmosoftwaredesign.cli.command.CommandRegistry
 import com.github.itmosoftwaredesign.cli.command.impl.*
-import com.github.itmosoftwaredesign.cli.command.parser.CommandParser
+import com.github.itmosoftwaredesign.cli.command.parser.CommandsParser
 import sun.misc.Signal
 import java.io.InputStream
 import kotlin.system.exitProcess
@@ -23,7 +23,7 @@ object ApplicationEntry {
     fun main(args: Array<String>) {
         val environment = Environment()
 
-        val parser = CommandParser(environment)
+        val parser = CommandsParser(environment)
         val commandRegistry = CommandRegistry()
         commandRegistry.register("cat", CatCommand())
         commandRegistry.register("pwd", PrintWorkingDirectoryCommand())

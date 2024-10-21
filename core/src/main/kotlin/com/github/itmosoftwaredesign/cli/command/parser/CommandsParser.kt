@@ -4,28 +4,32 @@ import com.github.itmosoftwaredesign.cli.Environment
 import java.io.*
 
 /**
- *  Command parser. Parse input string to commands, can use environment for substitution.
+ *  Commands parser. Parse input string to commands, can use environment for substitution.
  *
  * @author sibmaks
  * @since 0.0.1
  */
-class CommandParser(private val environment: Environment) {
+class CommandsParser(private val environment: Environment) {
     /**
-     * Parses the input command line string into tokens, handles I/O redirections, and returns
-     * a [ParsedCommand] containing the command tokens and associated input, output, and error streams.
+     * Parses the input command line string into tokens, handles I/O redirections, pipelines, and returns
+     * a [List<parsedCommands>] containing the commands with tokens and associated input, output, and error streams.
      *
      * @param input the input command line string to parse
-     * @return [ParsedCommand] object containing tokenized commands and I/O streams
+     * @return [List<parsedCommands>] object containing list of tokenized commands and I/O streams
      */
-    fun parse(input: String): ParsedCommand {
+    fun parse(input: String): List<ParsedCommand> {
         val tokens = tokenize(input)
-        val commandTokens = ArrayList<String>()
+        val commandsList = ArrayList<ParsedCommand>()
+        var commandTokens = ArrayList<String>()
         var inputStream = System.`in`
         var outputStream: OutputStream = System.out
         var errorStream: OutputStream = System.err
         var inputStreamFile = File("")
         var outputStreamFile = File("")
         var errorStreamFile = File("")
+
+        var pipedInput: PipedInputStream? = null
+        var pipedOutput: PipedOutputStream? = null
 
         var i = 0
         while (i < tokens.size) {
@@ -82,6 +86,24 @@ class CommandParser(private val environment: Environment) {
                         errorStreamFile = file
                     }
 
+                    "|" -> {
+                        pipedOutput = PipedOutputStream()
+                        pipedInput = PipedInputStream(pipedOutput)
+
+                        commandsList.add(ParsedCommand(
+                            commandTokens,
+                            inputStream,
+                            pipedOutput,
+                            errorStream,
+                            outputStreamFile,
+                            inputStreamFile,
+                            errorStreamFile
+                        ))
+
+                        commandTokens = ArrayList()
+                        inputStream = pipedInput
+                    }
+
                     else -> commandTokens.add(token)
                 }
             } catch (e: FileNotFoundException) {
@@ -90,7 +112,7 @@ class CommandParser(private val environment: Environment) {
             i++
         }
 
-        return ParsedCommand(
+        commandsList.add(ParsedCommand(
             commandTokens,
             inputStream,
             outputStream,
@@ -98,7 +120,9 @@ class CommandParser(private val environment: Environment) {
             outputStreamFile,
             inputStreamFile,
             errorStreamFile
-        )
+        ))
+
+        return commandsList
     }
 
     private fun tokenize(input: String): List<String> {

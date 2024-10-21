@@ -10,14 +10,16 @@ import org.junit.jupiter.api.assertThrows
 import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
+import java.io.PipedInputStream
+import java.io.PipedOutputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.createFile
 
-class CommandParserTest {
+class CommandsParserTest {
 
-    private lateinit var commandParser: CommandParser
+    private lateinit var commandsParser: CommandsParser
     private lateinit var environment: Environment
     private lateinit var workingDirectory: Path
 
@@ -26,18 +28,18 @@ class CommandParserTest {
         environment = mockk(relaxed = true)
         workingDirectory = Path.of("/test/directory")
         every { environment.workingDirectory } returns workingDirectory
-        commandParser = CommandParser(environment)
+        commandsParser = CommandsParser(environment)
     }
 
     @Test
     fun `should parse simple command without redirections`() {
         val input = "echo Hello"
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo", "Hello"), parsedCommand.commandTokens)
-        assertEquals(System.`in`, parsedCommand.inputStream)
-        assertEquals(System.out, parsedCommand.outputStream)
-        assertEquals(System.err, parsedCommand.errorStream)
+        assertEquals(listOf("echo", "Hello"), parsedCommands.commandTokens)
+        assertEquals(System.`in`, parsedCommands.inputStream)
+        assertEquals(System.out, parsedCommands.outputStream)
+        assertEquals(System.err, parsedCommands.errorStream)
     }
 
     @Test
@@ -50,10 +52,10 @@ class CommandParserTest {
             .createFile()
 
         val input = "cat < $fileName"
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("cat"), parsedCommand.commandTokens)
-        assert(parsedCommand.inputStream is FileInputStream)
+        assertEquals(listOf("cat"), parsedCommands.commandTokens)
+        assert(parsedCommands.inputStream is FileInputStream)
     }
 
     @Test
@@ -66,10 +68,10 @@ class CommandParserTest {
             .createFile()
 
         val input = "cmd > $fileName"
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("cmd"), parsedCommand.commandTokens)
-        assert(parsedCommand.outputStream is FileOutputStream)
+        assertEquals(listOf("cmd"), parsedCommands.commandTokens)
+        assert(parsedCommands.outputStream is FileOutputStream)
     }
 
     @Test
@@ -83,10 +85,10 @@ class CommandParserTest {
 
         val input = "cmd >> $fileName"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("cmd"), parsedCommand.commandTokens)
-        assert(parsedCommand.outputStream is FileOutputStream)
+        assertEquals(listOf("cmd"), parsedCommands.commandTokens)
+        assert(parsedCommands.outputStream is FileOutputStream)
     }
 
     @Test
@@ -100,10 +102,10 @@ class CommandParserTest {
 
         val input = "cmd 2> $fileName"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("cmd"), parsedCommand.commandTokens)
-        assert(parsedCommand.errorStream is FileOutputStream)
+        assertEquals(listOf("cmd"), parsedCommands.commandTokens)
+        assert(parsedCommands.errorStream is FileOutputStream)
     }
 
     @Test
@@ -116,10 +118,10 @@ class CommandParserTest {
             .createFile()
 
         val input = "cmd 2>> $fileName"
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("cmd"), parsedCommand.commandTokens)
-        assert(parsedCommand.errorStream is FileOutputStream)
+        assertEquals(listOf("cmd"), parsedCommands.commandTokens)
+        assert(parsedCommands.errorStream is FileOutputStream)
     }
 
     @Test
@@ -132,10 +134,10 @@ class CommandParserTest {
             .createFile()
 
         val input = "cmd &> output.txt"
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("cmd"), parsedCommand.commandTokens)
-        assert(parsedCommand.outputStream == parsedCommand.errorStream)
+        assertEquals(listOf("cmd"), parsedCommands.commandTokens)
+        assert(parsedCommands.outputStream == parsedCommands.errorStream)
     }
 
     @Test
@@ -145,14 +147,14 @@ class CommandParserTest {
         every { environment.workingDirectory.resolve("nonexistent.txt").toFile() } throws FileNotFoundException()
 
         assertThrows<IllegalArgumentException> {
-            commandParser.parse(input)
+            commandsParser.parse(input).first()
         }
     }
 
     @Test
     fun `should tokenize string with spaces and quotes`() {
         val input = "echo 'hello world' \"Kotlin CLI\""
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("echo", "hello world", "Kotlin CLI"), tokens)
     }
@@ -160,7 +162,7 @@ class CommandParserTest {
     @Test
     fun `should tokenize equals in the middle`() {
         val input = "do key=value"
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("do", "key=value"), tokens)
     }
@@ -168,7 +170,7 @@ class CommandParserTest {
     @Test
     fun `should replace new line in single quotes`() {
         val input = "echo 'hello\\nworld'"
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("echo", "hello\nworld"), tokens)
     }
@@ -176,7 +178,7 @@ class CommandParserTest {
     @Test
     fun `should keep new line in double quotes`() {
         val input = "echo \"hello\\nworld\""
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("echo", "hello\\nworld"), tokens)
     }
@@ -184,7 +186,7 @@ class CommandParserTest {
     @Test
     fun `should keep dash at the end`() {
         val input = "echo \\"
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("echo", "\\"), tokens)
     }
@@ -192,7 +194,7 @@ class CommandParserTest {
     @Test
     fun `should keep unknown replacement`() {
         val input = "echo \\b"
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("echo", "\\b"), tokens)
     }
@@ -200,7 +202,7 @@ class CommandParserTest {
     @Test
     fun `should keep unknown replacement in quotes`() {
         val input = "echo '\\b'"
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("echo", "\\b"), tokens)
     }
@@ -210,7 +212,7 @@ class CommandParserTest {
         val input = "test=me"
         every { environment.getVariable("HOME") } returns "/home/user"
 
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("set", "test", "me"), tokens)
     }
@@ -219,7 +221,7 @@ class CommandParserTest {
     fun `should handle command with 1st = symbol`() {
         val input = "=me"
 
-        val tokens = commandParser.parse(input).commandTokens
+        val tokens = commandsParser.parse(input).first().commandTokens
 
         assertEquals(listOf("=me"), tokens)
     }
@@ -229,9 +231,9 @@ class CommandParserTest {
         val input = "echo \$HOME"
         every { environment.getVariable("HOME") } returns "/home/user"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo", "/home/user"), parsedCommands.commandTokens)
     }
 
     @Test
@@ -239,9 +241,9 @@ class CommandParserTest {
         val input = "echo \$HOME"
         every { environment.getVariable("HOME") } returns null
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo"), parsedCommands.commandTokens)
     }
 
     @Test
@@ -249,9 +251,9 @@ class CommandParserTest {
         val input = "echo \$HOME_1"
         every { environment.getVariable("HOME_1") } returns "/home/user"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo", "/home/user"), parsedCommands.commandTokens)
     }
 
     @Test
@@ -259,9 +261,9 @@ class CommandParserTest {
         val input = "echo \${HOME}"
         every { environment.getVariable("HOME") } returns "/home/user"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo", "/home/user"), parsedCommands.commandTokens)
     }
 
     @Test
@@ -269,18 +271,18 @@ class CommandParserTest {
         val input = "echo \${HOME"
         every { environment.getVariable("HOME") } returns "/home/user"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo", "/home/user"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo", "/home/user"), parsedCommands.commandTokens)
     }
 
     @Test
     fun `should handle variable substitution with brackets at the end`() {
         val input = "echo \${"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo"), parsedCommands.commandTokens)
     }
 
     @Test
@@ -289,9 +291,9 @@ class CommandParserTest {
         val value = UUID.randomUUID().toString()
         every { environment.getVariable("$") } returns value
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo", value), parsedCommand.commandTokens)
+        assertEquals(listOf("echo", value), parsedCommands.commandTokens)
     }
 
     @Test
@@ -300,9 +302,9 @@ class CommandParserTest {
         val value = UUID.randomUUID().toString()
         every { environment.getVariable("?") } returns value
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo", value), parsedCommand.commandTokens)
+        assertEquals(listOf("echo", value), parsedCommands.commandTokens)
     }
 
     @Test
@@ -310,17 +312,65 @@ class CommandParserTest {
         val input = "echo \$?"
         every { environment.getVariable("?") } returns null
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo"), parsedCommands.commandTokens)
     }
 
     @Test
     fun `should handle variable substitution at the end`() {
         val input = "echo \$"
 
-        val parsedCommand = commandParser.parse(input)
+        val parsedCommands = commandsParser.parse(input).first()
 
-        assertEquals(listOf("echo"), parsedCommand.commandTokens)
+        assertEquals(listOf("echo"), parsedCommands.commandTokens)
+    }
+
+    @Test
+    fun `should handle parsing several commands`() {
+        val input = "echo \"input\" | wc | echo \"output\""
+
+        val parsedCommands = commandsParser.parse(input)
+
+        assertEquals(listOf("echo", "input"), parsedCommands.first().commandTokens)
+        assertEquals(listOf("wc"), parsedCommands[1].commandTokens)
+        assertEquals(listOf("echo", "output"), parsedCommands.last().commandTokens)
+    }
+
+    @Test
+    fun `should handle pipeline streams between commands`() {
+        val input = "echo \"input\" | wc | echo \"output\""
+
+        val parsedCommands = commandsParser.parse(input)
+
+        assertEquals(System.`in`, parsedCommands.first().inputStream)
+        assert(parsedCommands.first().outputStream is PipedOutputStream)
+        assert(parsedCommands[1].inputStream is PipedInputStream)
+        assert(parsedCommands[1].outputStream is PipedOutputStream)
+        assert(parsedCommands.last().inputStream is PipedInputStream)
+        assertEquals(System.out, parsedCommands.last().outputStream)
+    }
+
+    @Test
+    fun `should handle streams redirections within pipeline`() {
+        val workingDirectory = Files.createTempDirectory("command-parser-test")
+        every { environment.workingDirectory } returns workingDirectory
+
+        val outputFileName = "output.txt"
+        workingDirectory.resolve(outputFileName)
+            .createFile()
+
+        val inputFileName = "input.txt"
+        workingDirectory.resolve(inputFileName)
+            .createFile()
+
+        val input = "cat < input.txt | wc > output.txt"
+
+        val parsedCommands = commandsParser.parse(input)
+
+        assert(parsedCommands.first().inputStream is FileInputStream)
+        assert(parsedCommands.first().outputStream is PipedOutputStream)
+        assert(parsedCommands.last().inputStream is PipedInputStream)
+        assert(parsedCommands.last().outputStream is FileOutputStream)
     }
 }
