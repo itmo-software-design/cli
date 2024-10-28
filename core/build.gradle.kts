@@ -28,6 +28,7 @@ repositories {
 
 dependencies {
     implementation(libs.jakarta.annotation)
+    implementation("commons-cli:commons-cli:1.9.0")
 
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.mockk)

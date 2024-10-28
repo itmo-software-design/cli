@@ -35,6 +35,7 @@ object ApplicationEntry {
         commandRegistry.register("echo", EchoCommand())
         commandRegistry.register("wc", WcCommand())
         commandRegistry.register("exit", ExitCommand())
+        commandRegistry.register("grep", GrepCommand())
 
         val interpreter = Interpreter(environment, parser, commandRegistry, System.`in`)
         val interpreterThread = Thread(interpreter)
