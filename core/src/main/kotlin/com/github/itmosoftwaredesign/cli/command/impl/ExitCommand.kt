@@ -2,25 +2,26 @@ package com.github.itmosoftwaredesign.cli.command.impl
 
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command
+import com.github.itmosoftwaredesign.cli.command.CommandInterrupted
 import com.github.itmosoftwaredesign.cli.command.CommandResult
 import com.github.itmosoftwaredesign.cli.command.ErrorResult
-import com.github.itmosoftwaredesign.cli.command.SuccessResult
 import com.github.itmosoftwaredesign.cli.writeLineUTF8
 import jakarta.annotation.Nonnull
-import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
 /**
- *  `Echo` command definition.
+ *  `Exit` command definition.
  *
- *  The echo command prints out its arguments as standard output.
- *  It is used to display text strings or the command results.
+ *  Exits the CLI with a status of N.
+ *  If N is omitted, the exit status is that of the last command executed.
  *
- * @author gkashin
- * @since 0.0.1
+ *  If passed more than one argument, it will return an error `1`.
+ *
+ * @author sibmaks
+ * @since 0.0.3
  */
-class EchoCommand : Command {
+class ExitCommand : Command {
     override fun execute(
         @Nonnull environment: Environment,
         @Nonnull inputStream: InputStream,
@@ -28,13 +29,14 @@ class EchoCommand : Command {
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
     ): CommandResult {
-        val joined = arguments.joinToString(separator = " ")
-        try {
-            outputStream.writeLineUTF8(joined)
-            return SuccessResult()
-        } catch (e: IOException) {
-            errorStream.writeLineUTF8("Output stream write exception, reason: ${e.message}")
+        if (arguments.isEmpty()) {
+            return CommandInterrupted(environment.lastStatusCode)
+        }
+        if (arguments.size != 1) {
+            errorStream.writeLineUTF8("exit command except expect 1 argument")
             return ErrorResult(1)
         }
+        val statusCode = arguments.first().toInt()
+        return CommandInterrupted(statusCode)
     }
 }

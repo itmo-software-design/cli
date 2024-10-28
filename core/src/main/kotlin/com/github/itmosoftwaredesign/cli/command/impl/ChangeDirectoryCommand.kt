@@ -2,6 +2,9 @@ package com.github.itmosoftwaredesign.cli.command.impl
 
 import com.github.itmosoftwaredesign.cli.Environment
 import com.github.itmosoftwaredesign.cli.command.Command
+import com.github.itmosoftwaredesign.cli.command.CommandResult
+import com.github.itmosoftwaredesign.cli.command.ErrorResult
+import com.github.itmosoftwaredesign.cli.command.SuccessResult
 import com.github.itmosoftwaredesign.cli.writeLineUTF8
 import jakarta.annotation.Nonnull
 import java.io.InputStream
@@ -11,6 +14,11 @@ import kotlin.io.path.isDirectory
 
 /**
  *  Change working directory command.
+ *
+ *  Can producer the next errors:
+ *  1. No argument passed
+ *  2. Passed path is not found
+ *  3. Passed path is not a directory
  *
  * @author sibmaks
  * @since 0.0.1
@@ -22,10 +30,10 @@ class ChangeDirectoryCommand : Command {
         @Nonnull outputStream: OutputStream,
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
-    ) {
+    ): CommandResult {
         if (arguments.size != 1) {
             errorStream.writeLineUTF8("Change directory command except expect 1 argument")
-            return
+            return ErrorResult(1)
         }
         val move = arguments[0]
         val newWorkingDirectory = environment.workingDirectory
@@ -34,12 +42,13 @@ class ChangeDirectoryCommand : Command {
             .toAbsolutePath()
         if (!newWorkingDirectory.exists()) {
             errorStream.writeLineUTF8("Directory '$newWorkingDirectory' does not exist")
-            return
+            return ErrorResult(2)
         }
-        if(!newWorkingDirectory.isDirectory()) {
+        if (!newWorkingDirectory.isDirectory()) {
             errorStream.writeLineUTF8("'$newWorkingDirectory' is not directory")
-            return
+            return ErrorResult(3)
         }
         environment.workingDirectory = newWorkingDirectory
+        return SuccessResult()
     }
 }

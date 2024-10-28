@@ -47,7 +47,7 @@ class CatCommandTest {
         val content = UUID.randomUUID().toString()
         tempFile.writeText(content)
 
-        catCommand.execute(
+        val rs = catCommand.execute(
             environment,
             ByteArrayInputStream(byteArrayOf()),
             outputStream,
@@ -55,6 +55,7 @@ class CatCommandTest {
             listOf(tempFile.absolutePath)
         )
 
+        assertEquals(0, rs.statusCode)
         assertEquals(content, outputStream.toString())
         assertTrue(errorStream.toString().isEmpty())
 
