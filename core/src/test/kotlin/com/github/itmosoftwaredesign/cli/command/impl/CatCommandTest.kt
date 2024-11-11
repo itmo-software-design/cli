@@ -55,7 +55,7 @@ class CatCommandTest {
             listOf(tempFile.absolutePath)
         )
 
-        assertEquals(0, rs.statusCode)
+        assertEquals(0, rs.exitCode)
         assertEquals(content, outputStream.toString())
         assertTrue(errorStream.toString().isEmpty())
 

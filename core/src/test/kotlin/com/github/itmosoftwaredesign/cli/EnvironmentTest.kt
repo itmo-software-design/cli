@@ -1,10 +1,13 @@
 package com.github.itmosoftwaredesign.cli
 
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.nio.file.Path
+import java.util.*
 
 class EnvironmentTest {
 
@@ -20,6 +23,44 @@ class EnvironmentTest {
         environment.setVariable("key", "value")
 
         assertEquals("value", environment.getVariable("key"))
+    }
+
+    @Test
+    fun `should get system variable - exitCode`() {
+        val exitCode = UUID.randomUUID().hashCode()
+        environment.lastExitCode = exitCode
+
+        assertEquals("$exitCode", environment.getVariable("?"))
+    }
+
+    @Test
+    fun `should get system variable - pid`() {
+        val pid = UUID.randomUUID().mostSignificantBits
+        mockkStatic(ProcessHandle::class)
+
+        val processHandle = mockk<ProcessHandle>(relaxed = true)
+        every { ProcessHandle.current() } returns processHandle
+        every { processHandle.pid() } returns pid
+
+        assertEquals("$pid", environment.getVariable("$"))
+    }
+
+    @Test
+    fun `should get system variable - working directory`() {
+        val workingDirectory = UUID.randomUUID().toString()
+        environment.workingDirectory = Path.of(workingDirectory)
+
+        assertEquals(workingDirectory, environment.getVariable("PWD"))
+    }
+
+    @Test
+    fun `should remove environment variables with null value`() {
+        environment.setVariable("key", "value")
+        assertEquals("value", environment.getVariable("key"))
+
+        environment.setVariable("key", null)
+
+        assertTrue(environment.getVariableNames().isEmpty())
     }
 
     @Test
@@ -46,4 +87,13 @@ class EnvironmentTest {
     fun `should have empty path as default working directory`() {
         assertEquals(Path.of(""), environment.workingDirectory)
     }
+
+    @Test
+    fun `should set and get exit code`() {
+        val exitCode = UUID.randomUUID().hashCode()
+        environment.lastExitCode = exitCode
+
+        assertEquals(exitCode, environment.lastExitCode)
+    }
+
 }

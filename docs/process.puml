@@ -1,18 +1,18 @@
 @startuml
 actor Пользователь
 participant CLIInterpreter
-participant CommandParser
+participant commandsParser
 participant Environment
 participant CommandRegistry
 participant Command
 participant ExternalProcess
 
 Пользователь -> CLIInterpreter: Ввод команды
-CLIInterpreter -> CommandParser: parse(environment, input) парсинг команды
-CommandParser -> CommandParser: Парсинг команды
-CommandParser -> CommandRegistry: Получить Command для команды
-CommandRegistry --> CommandParser: Возвращает соответствующий Command объект
-CommandParser -> CLIInterpreter: Возвращает список Command объектов
+CLIInterpreter -> commandsParser: parse(environment, input) парсинг команды
+commandsParser -> commandsParser: Парсинг команды
+commandsParser -> CommandRegistry: Получить Command для команды
+CommandRegistry --> commandsParser: Возвращает соответствующий Command объект
+commandsParser -> CLIInterpreter: Возвращает список Command объектов
 
 CLIInterpreter -> Command: execute(environment, input, output, args) выполнение команды
 alt Встроенная команда
