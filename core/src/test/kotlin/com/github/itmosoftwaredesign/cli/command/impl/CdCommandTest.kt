@@ -14,17 +14,17 @@ import java.util.*
 import kotlin.io.path.createDirectory
 import kotlin.io.path.createFile
 
-class ChangeDirectoryCommandTest {
+class CdCommandTest {
 
     private lateinit var environment: Environment
-    private lateinit var changeDirectoryCommand: ChangeDirectoryCommand
+    private lateinit var changeDirectoryCommand: CdCommand
     private lateinit var outputStream: ByteArrayOutputStream
     private lateinit var errorStream: ByteArrayOutputStream
 
     @BeforeEach
     fun setUp() {
         environment = mockk(relaxed = true)
-        changeDirectoryCommand = ChangeDirectoryCommand()
+        changeDirectoryCommand = CdCommand()
         outputStream = ByteArrayOutputStream()
         errorStream = ByteArrayOutputStream()
     }
@@ -69,18 +69,10 @@ class ChangeDirectoryCommandTest {
     }
 
     @Test
-    fun `should write error when no arguments provided`() {
-        changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, emptyList())
-
-        val errorMessage = "Change directory command except expect 1 argument"
-        assertEquals(errorMessage, errorStream.toString().trim())
-    }
-
-    @Test
     fun `should write error when too many arguments provided`() {
         changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf("dir1", "dir2"))
 
-        val errorMessage = "Change directory command except expect 1 argument"
+        val errorMessage = "Change directory command except <= 1 argument"
         assertEquals(errorMessage, errorStream.toString().trim())
     }
 }

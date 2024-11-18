@@ -38,5 +38,7 @@ Command <|-- CatCommand
 Command <|-- WcCommand
 Command <|-- PwdCommand
 Command <|-- ExitCommand
+Command <|-- ChangeDirectoryCommand
+Command <|-- ListFilesCommand
 
 @enduml

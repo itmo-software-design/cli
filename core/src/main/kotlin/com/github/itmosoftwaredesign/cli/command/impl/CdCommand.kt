@@ -20,10 +20,10 @@ import kotlin.io.path.isDirectory
  *  2. Passed path is not found
  *  3. Passed path is not a directory
  *
- * @author sibmaks
+ * @author mk17ru
  * @since 0.0.1
  */
-class ChangeDirectoryCommand : Command {
+class CdCommand : Command {
     override fun execute(
         @Nonnull environment: Environment,
         @Nonnull inputStream: InputStream,
@@ -31,11 +31,11 @@ class ChangeDirectoryCommand : Command {
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
     ): CommandResult {
-        if (arguments.size != 1) {
-            errorStream.writeLineUTF8("Change directory command except expect 1 argument")
+        if (arguments.size > 1) {
+            errorStream.writeLineUTF8("Change directory command except <= 1 argument")
             return ErrorResult(1)
         }
-        val move = arguments[0]
+        val move = if (arguments.isEmpty()) "~" else arguments[0]
         val newWorkingDirectory = environment.workingDirectory
             .resolve(move)
             .normalize()
