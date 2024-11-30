@@ -15,6 +15,8 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
 
+private const val CURRENT_DIR = "."
+
 /**
  * `LsCommand` - команда для отображения содержимого каталога.
  *
@@ -32,7 +34,7 @@ class LsCommand : Command {
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
     ): CommandResult {
-        val move = if (arguments.isEmpty()) "." else arguments[0]
+        val move = if (arguments.isEmpty()) CURRENT_DIR else arguments[0]
         val directory = environment.workingDirectory
             .resolve(move)
             .normalize()

@@ -12,6 +12,7 @@ import java.io.OutputStream
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 
+
 /**
  *  Change working directory command.
  *
@@ -24,6 +25,8 @@ import kotlin.io.path.isDirectory
  * @since 0.0.1
  */
 class CdCommand : Command {
+    private val HOME_DIR = System.getProperty("user.home");
+
     override fun execute(
         @Nonnull environment: Environment,
         @Nonnull inputStream: InputStream,
@@ -35,7 +38,7 @@ class CdCommand : Command {
             errorStream.writeLineUTF8("Change directory command except <= 1 argument")
             return ErrorResult(1)
         }
-        val move = if (arguments.isEmpty()) "~" else arguments[0]
+        val move = if (arguments.isEmpty()) HOME_DIR else arguments[0]
         val newWorkingDirectory = environment.workingDirectory
             .resolve(move)
             .normalize()

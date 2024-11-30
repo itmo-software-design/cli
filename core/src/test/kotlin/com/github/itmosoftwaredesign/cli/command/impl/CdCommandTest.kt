@@ -20,6 +20,8 @@ class CdCommandTest {
     private lateinit var changeDirectoryCommand: CdCommand
     private lateinit var outputStream: ByteArrayOutputStream
     private lateinit var errorStream: ByteArrayOutputStream
+    private val HOME_DIR = System.getProperty("user.home");
+
 
     @BeforeEach
     fun setUp() {
@@ -69,10 +71,49 @@ class CdCommandTest {
     }
 
     @Test
+    fun `should change upper  directory when not directory provided`() {
+        val currentDir = Files.createTempDirectory("current")
+
+        every { environment.workingDirectory } returns currentDir.toAbsolutePath()
+
+        changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf())
+
+        verify  { environment.workingDirectory = Path.of(HOME_DIR) }
+    }
+
+    @Test
+    fun `should change upper two dirs`() {
+        val currentDir = Files.createTempDirectory("current")
+
+        val parentSecond = currentDir.parent.parent
+
+        every { environment.workingDirectory } returns currentDir.toAbsolutePath()
+
+        changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf("../.."))
+
+        verify  { environment.workingDirectory = parentSecond }
+    }
+
+    @Test
+    fun `should change upper  directory when two points provided`() {
+        val currentDir = Files.createTempDirectory("current")
+
+        every { environment.workingDirectory } returns currentDir.toAbsolutePath()
+
+        val parent = currentDir.parent
+
+        changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf(".."))
+
+        verify  { environment.workingDirectory = parent }
+    }
+
+    @Test
     fun `should write error when too many arguments provided`() {
         changeDirectoryCommand.execute(environment, System.`in`, outputStream, errorStream, listOf("dir1", "dir2"))
 
         val errorMessage = "Change directory command except <= 1 argument"
         assertEquals(errorMessage, errorStream.toString().trim())
     }
+
+
 }

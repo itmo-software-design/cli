@@ -327,6 +327,51 @@ class CommandsParserTest {
     }
 
     @Test
+    fun `should parse cd upper directory`() {
+        val input = "cd .."
+
+        val parsedCommands = commandsParser.parse(input).first()
+
+        assertEquals(listOf("cd", ".."), parsedCommands.commandTokens)
+    }
+
+    @Test
+    fun `should parse cd and empty`() {
+        val input = "cd "
+
+        val parsedCommands = commandsParser.parse(input).first()
+
+        assertEquals(listOf("cd"), parsedCommands.commandTokens)
+    }
+
+    @Test
+    fun `should parse ls and empty`() {
+        val input = "ls "
+
+        val parsedCommands = commandsParser.parse(input).first()
+
+        assertEquals(listOf("ls"), parsedCommands.commandTokens)
+    }
+
+    @Test
+    fun `should parse cd and directory`() {
+        val input = "cd src/main"
+
+        val parsedCommands = commandsParser.parse(input).first()
+
+        assertEquals(listOf("cd", "src/main"), parsedCommands.commandTokens)
+    }
+
+    @Test
+    fun `should parse ls and directory`() {
+        val input = "ls src/main"
+
+        val parsedCommands = commandsParser.parse(input).first()
+
+        assertEquals(listOf("ls", "src/main"), parsedCommands.commandTokens)
+    }
+
+    @Test
     fun `should handle parsing several commands`() {
         val input = "echo \"input\" | wc | echo \"output\""
 
