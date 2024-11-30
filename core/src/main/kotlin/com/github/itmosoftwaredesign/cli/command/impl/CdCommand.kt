@@ -12,6 +12,7 @@ import java.io.OutputStream
 import kotlin.io.path.exists
 import kotlin.io.path.isDirectory
 
+
 /**
  *  Change working directory command.
  *
@@ -20,10 +21,12 @@ import kotlin.io.path.isDirectory
  *  2. Passed path is not found
  *  3. Passed path is not a directory
  *
- * @author sibmaks
+ * @author mk17ru
  * @since 0.0.1
  */
-class ChangeDirectoryCommand : Command {
+class CdCommand : Command {
+    private val HOME_DIR = System.getProperty("user.home");
+
     override fun execute(
         @Nonnull environment: Environment,
         @Nonnull inputStream: InputStream,
@@ -31,11 +34,11 @@ class ChangeDirectoryCommand : Command {
         @Nonnull errorStream: OutputStream,
         @Nonnull arguments: List<String>
     ): CommandResult {
-        if (arguments.size != 1) {
-            errorStream.writeLineUTF8("Change directory command except expect 1 argument")
+        if (arguments.size > 1) {
+            errorStream.writeLineUTF8("Change directory command except <= 1 argument")
             return ErrorResult(1)
         }
-        val move = arguments[0]
+        val move = if (arguments.isEmpty()) HOME_DIR else arguments[0]
         val newWorkingDirectory = environment.workingDirectory
             .resolve(move)
             .normalize()

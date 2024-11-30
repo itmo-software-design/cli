@@ -96,6 +96,86 @@ class InterpreterTest {
     }
 
     @Test
+    fun `should execute several cd ls`() {
+        val cdCommandMock = mockk<Command>(relaxed = true)
+        val lsCommandMock = mockk<Command>(relaxed = true)
+        val cdParsedCommand = mockk<ParsedCommand>(relaxed = true)
+        val lsParsedCommand = mockk<ParsedCommand>(relaxed = true)
+        val parsedCommands = listOf(cdParsedCommand, lsParsedCommand)
+        val cdCommandTokens = listOf("cd", "..")
+        val lsCommandTokens = listOf("ls")
+
+        inputStream = ByteArrayInputStream("cd .. | ls\nexit\n".toByteArray())
+        every { cdParsedCommand.commandTokens } returns cdCommandTokens
+        every { lsParsedCommand.commandTokens } returns lsCommandTokens
+        every { commandsParser.parse("cd .. | ls") } returns parsedCommands
+        every { commandRegistry["cd"] } returns cdCommandMock
+        every { commandRegistry["ls"] } returns lsCommandMock
+        every { cdCommandMock.execute(any(), any(), any(), any(), any()) } returns SuccessResult()
+
+        interpreter = Interpreter(environment, commandsParser, commandRegistry, inputStream)
+        interpreter.run()
+
+        verify {
+            cdCommandMock.execute(
+                environment,
+                parsedCommands.first().inputStream,
+                parsedCommands.first().outputStream,
+                parsedCommands.first().errorStream,
+                listOf("..")
+            )
+
+            lsCommandMock.execute(
+                environment,
+                parsedCommands.last().inputStream,
+                parsedCommands.last().outputStream,
+                parsedCommands.last().errorStream,
+                listOf()
+            )
+        }
+    }
+
+    @Test
+    fun `should execute several cd git status`() {
+        val cdCommandMock = mockk<Command>(relaxed = true)
+        val lsCommandMock = mockk<Command>(relaxed = true)
+        val cdParsedCommand = mockk<ParsedCommand>(relaxed = true)
+        val lsParsedCommand = mockk<ParsedCommand>(relaxed = true)
+        val parsedCommands = listOf(cdParsedCommand, lsParsedCommand)
+        val cdCommandTokens = listOf("cd", "..")
+        val lsCommandTokens = listOf("git", "status")
+
+        inputStream = ByteArrayInputStream("cd .. | git status\nexit\n".toByteArray())
+        every { cdParsedCommand.commandTokens } returns cdCommandTokens
+        every { lsParsedCommand.commandTokens } returns lsCommandTokens
+        every { commandsParser.parse("cd .. | git status") } returns parsedCommands
+        every { commandRegistry["cd"] } returns cdCommandMock
+        every { commandRegistry["git"] } returns lsCommandMock
+        every { cdCommandMock.execute(any(), any(), any(), any(), any()) } returns SuccessResult()
+
+        interpreter = Interpreter(environment, commandsParser, commandRegistry, inputStream)
+        interpreter.run()
+
+        verify {
+            cdCommandMock.execute(
+                environment,
+                parsedCommands.first().inputStream,
+                parsedCommands.first().outputStream,
+                parsedCommands.first().errorStream,
+                listOf("..")
+            )
+
+            lsCommandMock.execute(
+                environment,
+                parsedCommands.last().inputStream,
+                parsedCommands.last().outputStream,
+                parsedCommands.last().errorStream,
+                listOf("status")
+            )
+        }
+    }
+
+    @Test
     fun `should run external process on unknown command`() {
         inputStream = ByteArrayInputStream("ls\n".toByteArray())
         interpreter = spyk(Interpreter(environment, commandsParser, commandRegistry, inputStream))
